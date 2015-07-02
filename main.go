@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -15,7 +17,10 @@ type GithubPush struct {
 type RepoInfo struct {
 	Git_url string `json:"git_url"`
 	Url     string `json:"url"`
+	Name    string `json:"name"`
 }
+
+var cmd *exec.Cmd = nil
 
 func handleConnection(conn net.Conn) {
 
@@ -81,7 +86,51 @@ func handleConnection(conn net.Conn) {
 		fmt.Println(err.Error())
 	}
 
-	fmt.Println(bmap.Repository.Git_url)
+	var toClone bool = false
+
+	if _, err := os.Stat(bmap.Repository.Name); err != nil {
+		if os.IsNotExist(err) {
+			toClone = true
+		}
+
+	}
+
+	var cout []byte
+
+	if cmd != nil {
+		cmd.Process.Kill()
+	}
+
+	if toClone {
+		cmd = exec.Command("git", "clone", bmap.Repository.Git_url)
+	} else {
+		cmd = exec.Command("git", "pull")
+		cmd.Dir = bmap.Repository.Name
+	}
+
+	if cout, err = cmd.CombinedOutput(); err != nil {
+		fmt.Println(err.Error())
+	}
+
+	fmt.Println(string(cout))
+
+	cmd = exec.Command("go", "build")
+	cmd.Dir = bmap.Repository.Name
+
+	if cout, err = cmd.CombinedOutput(); err != nil {
+		fmt.Println(err.Error())
+	}
+
+	fmt.Println(string(cout))
+
+	cmd = exec.Command("./" + bmap.Repository.Name + ".exe")
+	cmd.Dir = bmap.Repository.Name
+
+	err = cmd.Start()
+
+	if err != nil {
+		fmt.Println("error starting process", err.Error())
+	}
 
 }
 
