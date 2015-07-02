@@ -123,7 +123,7 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println(string(cout))
 
-	cmd = exec.Command("./" + bmap.Repository.Name + ".exe")
+	cmd = exec.Command("./" + bmap.Repository.Name)
 	cmd.Dir = bmap.Repository.Name
 
 	err = cmd.Start()
