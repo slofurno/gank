@@ -132,6 +132,10 @@ func handleConnection(conn net.Conn) {
 		fmt.Println("error starting process", err.Error())
 	}
 
+	go func() {
+		err = cmd.Wait()
+	}()
+
 }
 
 func main() {
